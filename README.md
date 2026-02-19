@@ -1,0 +1,7 @@
+# Шаблон для сервера на rust
+
+## Настройка
+
+Включение pre-commit `pre-commit install`
+
+Локальный запуск `pre-commit run --verbose`
