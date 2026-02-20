@@ -1,10 +1,14 @@
-use axum::http::{Method, header};
+use axum::http::{HeaderValue, Method, header};
 use std::time::Duration;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 
-pub fn cors() -> CorsLayer {
+pub fn cors(cors_origin: &str) -> CorsLayer {
     CorsLayer::new()
-        .allow_origin(Any)
+        .allow_origin(
+            cors_origin
+                .parse::<HeaderValue>()
+                .expect("CORS origin parse error"),
+        )
         .allow_methods([
             Method::GET,
             Method::POST,

@@ -28,14 +28,14 @@ async fn main() -> anyhow::Result<()> {
         .await
         .expect("migrations failed");
 
-    let state = AppState { pool, config };
-
     let listener = TcpListener::bind(addr).await.expect("bind listener error");
 
     let app = Router::<AppState>::new()
         .merge(routes::router())
-        .with_state(state)
-        .layer(cors::cors());
+        .layer(cors::cors(&config.cors_origin));
+
+    let state = AppState { pool, config };
+    let app = app.with_state(state);
 
     serve(listener, app).await.expect("serve error");
 
