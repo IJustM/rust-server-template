@@ -4,7 +4,7 @@
 
 Включение pre-commit `pre-commit install`
 
-Локальный запуск `pre-commit run --verbose`
+Локальный запуск `pre-commit run --verbose --all-files`
 
 ## Запуск
 

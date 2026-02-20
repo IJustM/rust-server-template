@@ -8,6 +8,7 @@ pub struct UserRow {
     pub id: Uuid,
     pub email: String,
     pub password_hash: String,
+    #[allow(dead_code)]
     pub created_at: OffsetDateTime,
 }
 
