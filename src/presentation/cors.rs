@@ -9,6 +9,7 @@ pub fn cors(cors_origin: &str) -> CorsLayer {
                 .parse::<HeaderValue>()
                 .expect("CORS origin parse error"),
         )
+        .allow_credentials(true)
         .allow_methods([
             Method::GET,
             Method::POST,
