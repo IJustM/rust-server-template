@@ -1,4 +1,5 @@
 mod data;
+mod domain;
 mod infrastructure;
 mod presentation;
 mod state;

@@ -1,6 +1,5 @@
-use std::time::Duration;
-
 use axum::http::{Method, header};
+use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
 
 pub fn cors() -> CorsLayer {
