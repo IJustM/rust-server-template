@@ -1,15 +1,18 @@
 use axum::{
     Json, Router,
     extract::State,
-    http::StatusCode,
-    response::IntoResponse,
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{data::users_repo, infrastructure::security, state::AppState};
+use crate::{
+    data::users_repo,
+    error::AppError,
+    infrastructure::security::{self, AuthUser},
+    state::AppState,
+};
 
 #[derive(Deserialize)]
 struct RegisterDto {
@@ -38,33 +41,9 @@ struct LoginResponse {
     access_token: String,
 }
 
-enum AppError {
-    BadRequest(String),
-    Unauthorized(String),
-    Conflict(String),
-    Internal(String),
-    Db,
-}
-
 #[derive(Serialize)]
-struct AppErrorBody {
-    message: String,
-}
-
-impl IntoResponse for AppError {
-    fn into_response(self) -> axum::response::Response {
-        let (status, message) = match self {
-            AppError::BadRequest(message) => (StatusCode::BAD_REQUEST, message),
-            AppError::Unauthorized(message) => (StatusCode::UNAUTHORIZED, message),
-            AppError::Conflict(message) => (StatusCode::CONFLICT, message),
-            AppError::Internal(message) => (StatusCode::INTERNAL_SERVER_ERROR, message),
-            AppError::Db => (StatusCode::INTERNAL_SERVER_ERROR, "db error".to_string()),
-        };
-
-        let body = Json(AppErrorBody { message });
-
-        (status, body).into_response()
-    }
+struct ProfileResponse {
+    email: String,
 }
 
 async fn health() -> Json<HealthResponse> {
@@ -129,10 +108,16 @@ async fn login(
         return Err(AppError::Unauthorized("not correct password".to_string()));
     }
 
-    let access_token = security::generate_jwt(&state.config.jwt_secret, &user.id)
+    let access_token = security::generate_jwt(&state.config.jwt_secret, &user.id, &user.email)
         .map_err(|_| AppError::Internal("jwt error".to_string()))?;
 
     Ok(Json(LoginResponse { access_token }))
+}
+
+async fn profile(AuthUser(claims): AuthUser) -> anyhow::Result<Json<ProfileResponse>, AppError> {
+    Ok(Json(ProfileResponse {
+        email: claims.email,
+    }))
 }
 
 pub fn router() -> Router<AppState> {
@@ -140,4 +125,5 @@ pub fn router() -> Router<AppState> {
         .route("/health", get(health))
         .route("/register", post(register))
         .route("/login", post(login))
+        .route("/profile", get(profile))
 }
